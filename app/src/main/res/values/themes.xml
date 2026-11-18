@@ -1,0 +1,3 @@
+<resources>
+    <style name="Theme.Oase" parent="android:Theme.Material.NoActionBar" />
+</resources>

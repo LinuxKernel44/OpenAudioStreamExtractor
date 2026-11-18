@@ -1,0 +1,25 @@
+{
+  "manifest_version": 2,
+  "name": "OpenAudioStreamExtractor Helper",
+  "version": "1.0.0",
+  "description": "Observes media network traffic and page media elements for OpenAudioStreamExtractor.",
+  "browser_specific_settings": {
+    "gecko": { "id": "helper@openaudiostreamextractor.linuxkernel44.github.io" }
+  },
+  "permissions": [
+    "<all_urls>",
+    "webRequest",
+    "nativeMessaging",
+    "geckoViewAddons"
+  ],
+  "background": { "scripts": ["background.js"] },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_start",
+      "all_frames": true,
+      "match_about_blank": true
+    }
+  ]
+}
