@@ -24,8 +24,8 @@ android {
         applicationId = "io.github.linuxkernel44.openaudiostreamextractor"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.1.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -67,7 +67,12 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    androidResources { noCompress += listOf("xpi", "json", "js") }
+    androidResources {
+        noCompress += listOf("xpi", "json", "js")
+        // The default pattern drops directories starting with "_", which would strip the
+        // "_locales" folder from the bundled WebExtensions and make them invalid.
+        ignoreAssetsPattern = "!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~"
+    }
 
     packaging {
         jniLibs { useLegacyPackaging = true }

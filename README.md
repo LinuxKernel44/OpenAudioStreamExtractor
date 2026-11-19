@@ -15,7 +15,8 @@ engines with fallback.
 - Every candidate is **validated**: headers probed, PLS/M3U/XSPF/HLS resolved, HTML/video/segments/ads rejected, codec and bitrate detected, then **ranked**. The best match is highlighted; others are listed.
 - Input by pasting a URL, the Android **share sheet**, or the built-in **Browser** tab with an "Extract this page" button.
 - **Library**: save, rename, delete, search, favorites, export/import (M3U, PLS, JSON), and re-check dead streams.
-- uBlock Origin is bundled and enabled by default.
+- uBlock Origin and "I don't care about cookies" are bundled and enabled by default in GeckoView (Browser tab and the Gecko engines).
+- Streams that only play with a `Referer` header (e.g. radiofg.com) are detected and flagged in the result.
 - No analytics, no telemetry, no accounts.
 
 ## Build
@@ -44,5 +45,6 @@ APKs are split per ABI (`arm64-v8a`, `armeabi-v7a`, `x86_64`) plus a universal A
 
 ## License
 
-GPL-3.0-or-later. Bundles [uBlock Origin](https://github.com/gorhill/uBlock) (GPL-3.0) and
+GPL-3.0-or-later. Bundles [uBlock Origin](https://github.com/gorhill/uBlock) (GPL-3.0),
+[I don't care about cookies](https://github.com/OhMyGuus/I-Dont-Care-About-Cookies) (GPL-3.0) and
 [GeckoView](https://mozilla.github.io/geckoview/) (MPL-2.0).

@@ -162,6 +162,9 @@ fun StreamCard(s: StreamInfo, vm: MainViewModel, highlighted: Boolean) {
                 s.codec?.let { AssistChip(onClick = {}, label = { Text(it) }) }
                 s.bitrateKbps?.let { AssistChip(onClick = {}, label = { Text("$it kbps") }) }
             }
+            s.requiresReferer?.let {
+                Text("Needs header  Referer: $it", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.tertiary)
+            }
             Text("Found by ${s.engine.label} · score ${s.score}${if (s.isLive) " · live" else ""}", style = MaterialTheme.typography.labelSmall)
             Row {
                 IconButton(onClick = { copyToClipboard(ctx, s.url) }) { Icon(Icons.Filled.ContentCopy, "Copy") }

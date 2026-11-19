@@ -23,7 +23,9 @@ data class RawCandidate(
     val url: String,
     val engine: EngineId,
     val name: String? = null,
-    val contentTypeHint: String? = null
+    val contentTypeHint: String? = null,
+    /** Page that referenced the stream; many sites only serve it with this Referer. */
+    val referer: String? = null
 )
 
 enum class StreamKind(val label: String) {
@@ -44,7 +46,9 @@ data class StreamInfo(
     val stationName: String?,
     val genre: String?,
     val isLive: Boolean,
-    val score: Int
+    val score: Int,
+    /** The page to send as Referer/Origin, when the stream refuses requests without it. */
+    val requiresReferer: String? = null
 )
 
 sealed interface ExtractionEvent {

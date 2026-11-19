@@ -74,7 +74,7 @@ object PlaylistParser {
 
     private val audioExt = Regex("""\.(mp3|aac|aacp|m3u8|m3u|pls|ogg|oga|opus|flac|m4a|xspf)(\?|#|$)""", RegexOption.IGNORE_CASE)
     private val streamHint = Regex(
-        """(/;stream|/;\?type=|/stream\b|/listen\b|/live\b|icecast|shoutcast|streaming\.|stream\.|/mount|/radio/|\.radio\.|zeno\.fm|radio\.co|streamtheworld|\.akamaized\.net)""",
+        """(/;stream|/;\?type=|/stream\b|/listen\b|/live\b|icecast|shoutcast|streaming\.|stream\.|/mount|/radio/|\.radio\.|zeno\.fm|radio\.co|streamtheworld|\.akamaized\.net|streams?\.[a-z0-9-]+\.|/play/radios?/|[?&]format=(hd|sd|bd|hls|mp3|aac))""",
         RegexOption.IGNORE_CASE
     )
     private val junkExt = Regex(
@@ -85,6 +85,18 @@ object PlaylistParser {
         """(doubleclick|googlesyndication|googleadservices|adservice|imasdk|scorecardresearch|moatads|google-analytics|googletagmanager|facebook\.|twitter\.|gstatic|fonts\.g)""",
         RegexOption.IGNORE_CASE
     )
+
+    /** JSON/JS properties that usually hold a stream URL, e.g. `"hd":"https://..."`. */
+    private val streamKeyRegex = Regex(
+        """["']?(?:hd|sd|bd|hls|mp3|aac|ogg|stream\w*|\w*stream|listen\w*|live\w*|audio\w*|source|src|file)["']?\s*[:=]\s*["'](https?://[^"'\s<>]+)["']""",
+        RegexOption.IGNORE_CASE
+    )
+
+    /** URLs held by stream-like JSON keys. Their order in the text is preserved. */
+    fun findKeyedStreamUrls(text: String): List<String> =
+        streamKeyRegex.findAll(unescape(text)).map { it.groupValues[1] }
+            .filter { !isAdHost(it) && !junkExt.containsMatchIn(it) || audioExt.containsMatchIn(it) }
+            .distinct().toList()
 
     fun isAdHost(url: String): Boolean = adHosts.containsMatchIn(url)
 

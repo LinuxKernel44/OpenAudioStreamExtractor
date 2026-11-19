@@ -39,9 +39,22 @@ class StaticHtmlExtractor(baseClient: OkHttpClient = StreamValidator.defaultClie
         val scripts = attrValues(html, "script", "src").mapNotNull { PlaylistParser.resolve(pageUrl, it) }
             .filter { !PlaylistParser.isAdHost(it) && Regex("(player|radio|stream|main|app|bundle|index|live)", RegexOption.IGNORE_CASE).containsMatchIn(it) }
             .distinct().take(4)
-        for (s in scripts) fetch(s, 1024 * 1024)?.let { urls += PlaylistParser.findStreamUrls(it) }
+        for (s in scripts) fetch(s, 1024 * 1024)?.let { urls += PlaylistParser.findKeyedStreamUrls(it) + PlaylistParser.findStreamUrls(it) }
 
-        urls.take(40).map { RawCandidate(it, id) }
+        urls.take(300).map { it to nameNear(html, it) }
+            .sortedByDescending { (_, name) -> StreamValidator.nameMatchesSite(name, pageUrl) }
+            .take(40)
+            .map { (u, name) -> RawCandidate(u, id, name, referer = pageUrl) }
+    }
+
+    /** Finds the closest "label"/"name"/"title" JSON property next to [url] in [text]. */
+    internal fun nameNear(text: String, url: String): String? {
+        val t = PlaylistParser.unescape(text)
+        val at = t.indexOf(url).takeIf { it >= 0 } ?: return null
+        val re = Regex(""""(?:label|name|title)"\s*:\s*"([^"]{2,60})"""")
+        val after = re.find(t, at)?.takeIf { it.range.first - at < 800 }
+        val before = re.findAll(t.substring(maxOf(0, at - 800), at)).lastOrNull()
+        return (after ?: before)?.groupValues?.get(1)
     }
 
     internal fun scan(html: String, base: String): List<String> {
@@ -54,6 +67,7 @@ class StaticHtmlExtractor(baseClient: OkHttpClient = StreamValidator.defaultClie
             .forEach { PlaylistParser.resolve(base, PlaylistParser.unescape(it.groupValues[1]))?.let(out::add) }
         Regex("""<link[^>]+type=["']audio/[^"']+["'][^>]*href=["']([^"']+)["']""", RegexOption.IGNORE_CASE)
             .findAll(html).forEach { PlaylistParser.resolve(base, it.groupValues[1])?.let(out::add) }
+        out += PlaylistParser.findKeyedStreamUrls(html)
         out += PlaylistParser.findStreamUrls(html)
         return out.filter { !PlaylistParser.isAdHost(it) }
     }

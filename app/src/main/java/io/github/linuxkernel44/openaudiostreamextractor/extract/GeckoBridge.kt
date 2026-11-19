@@ -73,9 +73,9 @@ class GeckoBridge(private val context: Context) {
     suspend fun ensureReady() = withContext(Dispatchers.Main) {
         if (initialized) return@withContext
         val controller = runtime.webExtensionController
-        runCatching {
-            controller.ensureBuiltIn(UBO_LOCATION, UBO_ID).await()
-        }
+        // Content blockers are best-effort: a failure must never stop extraction.
+        runCatching { controller.ensureBuiltIn(UBO_LOCATION, UBO_ID).await() }
+        runCatching { controller.ensureBuiltIn(IDCAC_LOCATION, IDCAC_ID).await() }
         val helper = controller.ensureBuiltIn(HELPER_LOCATION, HELPER_ID).await()
         helper.setMessageDelegate(messageDelegate, NATIVE_APP)
         initialized = true
@@ -126,7 +126,7 @@ class GeckoBridge(private val context: Context) {
                         if (m.optString("type") != "candidate") continue
                         val u = m.optString("url")
                         if (u.isBlank() || PlaylistParser.isAdHost(u) || PlaylistParser.looksLikeSegment(u)) continue
-                        if (found.putIfAbsent(u, RawCandidate(u, engine, m.optString("icyName").ifBlank { null }, m.optString("contentType").ifBlank { null })) == null && firstHit == 0L) {
+                        if (found.putIfAbsent(u, RawCandidate(u, engine, m.optStr("icyName"), m.optStr("contentType"))) == null && firstHit == 0L) {
                             firstHit = SystemClock.elapsedRealtime()
                         }
                     }
@@ -146,10 +146,16 @@ class GeckoBridge(private val context: Context) {
         const val NATIVE_APP = "oase"
         const val UBO_LOCATION = "resource://android/assets/extensions/ublock/"
         const val UBO_ID = "uBlock0@raymondhill.net"
+        const val IDCAC_LOCATION = "resource://android/assets/extensions/idcac/"
+        const val IDCAC_ID = "jid1-KKzOGWgsW3Ao4Q@jetpack"
         const val HELPER_LOCATION = "resource://android/assets/extensions/helper/"
         const val HELPER_ID = "helper@openaudiostreamextractor.linuxkernel44.github.io"
     }
 }
+
+/** Like optString, but JSON null and blank become Kotlin null instead of "null". */
+private fun JSONObject.optStr(key: String): String? =
+    if (isNull(key)) null else optString(key).trim().ifEmpty { null }
 
 class GeckoNetworkExtractor(private val bridge: GeckoBridge) : Extractor {
     override val id = EngineId.GECKO_NETWORK

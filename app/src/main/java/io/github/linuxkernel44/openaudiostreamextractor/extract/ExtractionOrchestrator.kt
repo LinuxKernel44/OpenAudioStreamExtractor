@@ -25,6 +25,7 @@ class ExtractionOrchestrator(
             send(ExtractionEvent.EngineStarted(engine.id))
             return try {
                 val raw = withTimeoutOrNull(timeoutMs + 15_000) { engine.extract(pageUrl, timeoutMs) }.orEmpty()
+                    .map { if (it.referer == null) it.copy(referer = pageUrl) else it }
                 val valid = validator.validateAll(raw)
                 send(ExtractionEvent.EngineFinished(engine.id, raw.size, valid.size, null))
                 valid
